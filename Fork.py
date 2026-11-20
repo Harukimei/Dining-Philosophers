@@ -1,15 +1,11 @@
+import threading
+
+
 class Fork:
-    def __init__(self):
-        self._is_used = False
+    def __init__(self, id: int):
+        self.id = id
         self._is_clean = True
-
-    @property
-    def is_used(self) -> bool:
-        return self._is_used
-
-    @is_used.setter
-    def is_used(self, state:bool):
-        self._is_used = state
+        self.lock = threading.Lock()
 
     @property
     def is_clean(self) -> bool:
@@ -23,4 +19,4 @@ class Fork:
         self.is_clean = True
 
     def __str__(self):
-        return f"Fork({self.is_clean}, {self.is_used})"
+        return f"Fork NO.{self.id} ({self.is_clean})"

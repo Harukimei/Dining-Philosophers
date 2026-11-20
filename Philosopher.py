@@ -11,53 +11,56 @@ min_eating = 10
 max_eating = 100
 
 class Philosopher(Thread):
-    def __init__(self):
+    def __init__(self, id: int, left_fork:Fork, right_fork:Fork):
         super().__init__()
         self.state = states.THINKING
-        self.leftHand = None
-        self.rightHand = None
-
-        self.start()
-
-    def pickUpLeftFork(self, fork: Fork):
-        if not fork.is_used:
-            pass
-
-    def pickUpRightFork(self, fork: Fork):
-        pass
+        self.left_fork = left_fork
+        self.right_fork = right_fork
+        self.id = id
 
     def cleanFork(self, fork: Fork):
         fork.clean()
 
-    def canEat(self) -> bool: #//troll here be
-        return isinstance(self.leftHand, Fork) and isinstance(self.rightHand, Fork)
+    def canEat(self) -> bool:
+        first, second = (self.left_fork, self.right_fork)
 
-    def putDownLeftFork(self):
-        pass
+        print(f"{self.id} próbuje podnieść lewy widelec ({self.left_fork.id})")
+        first.lock.acquire()
+        print(f"{self.id} podniósł lewy widelec ({self.left_fork.id})")
+        time.sleep(0.2)
+        print(f"{self.id} próbuje podnieść [prawy] widelec ({self.right_fork.id})")
+        second.lock.acquire()
+        print(f"{self.id} podniósł prawy widelec ({self.right_fork.id})")
 
-    def putDownRighFork(self):
-        pass
+        return True
 
-    def putDownBothForks(self):
-        self.putDownLeftFork()
-        self.putDownRighFork()
 
 
     def eat(self):
-        if self.canEat():
-            self.state = states.EATING
-            time.sleep(randrange(min_eating, max_eating))
+        while self.state == states.WAITING:
+            if self.canEat():
+                self.state = states.EATING
+                eating_time = randrange(min_eating, max_eating)
 
-    def tryEating(self):
-        pass
-    def philosopher_life(self):
-        print(self)
+                print(f"Philosopher {self.id} is eating for {eating_time}")
+                time.sleep(eating_time)
 
-        if self.state == states.THINKING:
-            should_eat = randint(0,5)
-            if should_eat % 2 == 0:
-                self.tryEating()
+                self.state = states.THINKING
+                continue
+            print(f"Philosopher NO.{self.id} is waiting for forks")
+            print(self.left_fork, self.right_fork)
 
+
+    def run(self):
+            while True:
+                print(self)
+
+                if self.state == states.THINKING:
+                    should_eat = randint(0,5)
+                    if should_eat % 2 == 0:
+                        self.state = states.WAITING
+                        self.eat()
+                time.sleep(3)
 
     def __str__(self):
-        return f"Philosopher({self.state})"
+        return f"Philosopher NO.{self.id} - ({self.state}) "
